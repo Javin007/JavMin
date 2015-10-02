@@ -1,3 +1,20 @@
+/*-------------------------------------------------------------------------------------
+Title: JavMin
+Version: 1.0
+Author: Javin
+Address: javin@javin-inc.com
+
+A very simple Javascript minifier.  This will obfuscate variable names (only to reduce
+file size) and remove whitespace only.  It currently misses variables when they're 
+called like so:  
+    function varName(arg1, arg2);
+    
+Or when multiple variables are declared on a single line: 
+    var foo, bar, meh;
+    
+This does not break the code, but reduces the "shrink" factor.  
+-------------------------------------------------------------------------------------
+
 var ph = ph || {};
 ph.minify = ph.minify || function(strCode){
 	
@@ -287,7 +304,7 @@ ph.minify = ph.minify || function(strCode){
 	
 	
 	//Now scrub the vars, replacing them with minified names.
-	//strCode = scrubVars(strCode);
+	strCode = scrubVars(strCode);
 	
 	
 	
