@@ -194,6 +194,12 @@ ph.minify = ph.minify || function(strCode){
 	
 		}
 		
+		//If at this point, we find two forward slashes, we're not sure if it's RegEx, or an inline comment,
+		//so add an extra semicolon just to be safe.
+		if (strLine.indexOf("//") > -1) {
+			if (strLine.substr(strLine.length-1, 1) != ";") strLine = strLine + ";";
+		}
+		
 		//Return the finished product.
 		return strLine;
 	};
@@ -241,11 +247,6 @@ ph.minify = ph.minify || function(strCode){
 	//Remove any block comments. (/* */)
 	strCode = strCode.replace(/\/\*(.*?)\*\//g, "");
 	
-
-	
-	
-	
-	
 	//Now start removing extras.
 	
 	//Replace any double spacing found with single spacing.
@@ -286,7 +287,7 @@ ph.minify = ph.minify || function(strCode){
 	
 	
 	//Now scrub the vars, replacing them with minified names.
-	strCode = scrubVars(strCode);
+	//strCode = scrubVars(strCode);
 	
 	
 	
