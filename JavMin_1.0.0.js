@@ -5,11 +5,8 @@ Author: Javin
 Address: javin@javin-inc.com
 
 A very simple Javascript minifier.  This will obfuscate variable names (only to reduce
-file size) and remove whitespace only.  It currently misses variables when they're 
-called like so:  
-    function varName(arg1, arg2);
-    
-Or when multiple variables are declared on a single line: 
+file size) and remove whitespace only.  It currently misses variables after the first one
+when they're called like so:  
     var foo, bar, meh;
     
 This does not break the code, but reduces the "shrink" factor.  
@@ -61,13 +58,14 @@ ph.minify = ph.minify || function(strCode){
 		var strFoundVars = [];
 		var intFoundVars = 0;
 		
+		//TODO: Find a way to find multiple vars on a single line.
+		
 		//First, find all variable declarations.
-		var strVarDec = strValue.match(/var .*?( in |;)/g);
+		var strVarDec = strValue.match(/var (.*?)( in |;|\=|,)/g);
 		
 		if (strVarDec == null) return;
 		
 		for (var i = 0; i < strVarDec.length; i++) {
-			
 			//Find the "operator" that's closest to the "start" of the declaration.			
 			var intIndex = strVarDec[i].length;
 			for (var a = 0; a < strOps.length; a++) {
@@ -118,13 +116,22 @@ ph.minify = ph.minify || function(strCode){
 				}	
 			}
 			
-			//Check the block for any functions [function(arg1, arg2)], and grab those parameter variables as well.
-			var re = new RegExp("function\\(([^\)]+)\\)", "g");
+			//Check the block for any functions [function varName(arg1, arg2)], and grab those parameter variables as well.
+			var re = new RegExp("function(\\(([^\)]+)\\)|([^\)]+)\\(([^\)]+)\\)|([^\)]+)\\(\\))", "g");
+			
 			var strRet = strBlock.match(re);
 			if (strRet != null) {
 				for (var i = 0; i < strRet.length; i++) {
 					strRet[i] = strRet[i].substr(0, strRet[i].length-1);
-					var strSplit = strRet[i].substr(9).split(",");
+					var intIndex = strRet[i].indexOf("(") + 1;
+					//see if there's a function name.
+					var strTemp = strRet[i].substr(9, intIndex-10).trim();
+					if (strTemp != "") {
+						//If so, add that too.
+						strVarList.push(strTemp);
+					}
+					
+					var strSplit = strRet[i].substr(intIndex).split(",");
 					for (var a = 0; a < strSplit.length; a++) {
 						strSplit[a] = strSplit[a].trim();
 						if (strSplit[a] != "") {
@@ -134,7 +141,11 @@ ph.minify = ph.minify || function(strCode){
 				}
 			}
 
-			//Now check the block for any functions created using "function 
+
+			
+			
+			
+			
 			
 			var strNewBlock = strBlock;
 			if (strNewBlock.substr(0,1) == "{") strNewBlock = strBlockStart + strNewBlock.substr(1);
