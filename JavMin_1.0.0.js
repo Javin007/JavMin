@@ -14,7 +14,7 @@ ph.minify = ph.minify || function(strCode){
 	var intCurrentVar = 0;
 	
 	//All characters that could be at the "end" of a "var" declaration.
-	var strOps = [",","=",".",";"];
+	var strOps = [",","=",".",";"," in "];
 
 	//All characters that should be "escaped" so as not to cause issues.
 	var strEscapedChars = ["\"", "\\", "/","'"];
@@ -45,7 +45,7 @@ ph.minify = ph.minify || function(strCode){
 		var intFoundVars = 0;
 		
 		//First, find all variable declarations.
-		var strVarDec = strValue.match(/(var .*?;)/g);
+		var strVarDec = strValue.match(/var .*?( in |;)/g);
 		
 		if (strVarDec == null) return;
 		
@@ -102,18 +102,25 @@ ph.minify = ph.minify || function(strCode){
 			}
 			
 			//Check the block for any functions, and grab those parameter variables as well.
-			var re = new RegExp("function\(([^\)]+)\)", "g");
+			var re = new RegExp("function\\(([^\)]+)\\)", "g");
 			var strRet = strBlock.match(re);
 			if (strRet != null) {
 				for (var i = 0; i < strRet.length; i++) {
+					strRet[i] = strRet[i].substr(strRet[i].length-1,1);
 					var strSplit = strRet[i].substr(9).split(",");
 					for (var a = 0; a < strSplit.length; a++) {
-						if (strVarList.indexOf(strSplit[a]) == -1) strVarList.push(strSplit[a]);
+						strSplit[a] = strSplit[a].trim();
+						if (strSplit[a] != "") {
+							if (strVarList.indexOf(strSplit[a]) == -1) strVarList.push(strSplit[a]);
+						}
 					}
 				}
 			}
-			
-			var strNewBlock = strBlockStart + strBlock.substr(1, strBlock.length-2) + strBlockEnd;
+
+			var strNewBlock = strBlock;
+			if (strNewBlock.substr(0,1) == "{") strNewBlock = strBlockStart + strNewBlock.substr(1);
+			if (strNewBlock.substr(strNewBlock.length-1,1) == "}") strNewBlock = strNewBlock.substr(0, strNewBlock.length - 1) + strBlockEnd;
+
 			strValue = strValue.replace(strBlock, strNewBlock);
 			strBlock = getBlock(strValue);
 		}
@@ -132,7 +139,8 @@ ph.minify = ph.minify || function(strCode){
 				var re = new RegExp("\\b" + strVarList[i] + "\\b", "gm");
 				strNewBlock = strNewBlock.replace(re, strUniqueVar+i+"J");
 			}
-			strNewBlock = strBlockStart + strNewBlock.substr(1, strNewBlock.length-2) + strBlockEnd;
+			if (strNewBlock.substr(0,1) == "{") strNewBlock = strBlockStart + strNewBlock.substr(1);
+			if (strNewBlock.substr(strNewBlock.length-1,1) == "}") strNewBlock = strNewBlock.substr(0, strNewBlock.length - 1) + strBlockEnd;
 			strValue = strValue.replace(strBlock, strNewBlock);
 			strBlock = getBlock(strValue);			
 		}
