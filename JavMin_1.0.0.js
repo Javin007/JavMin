@@ -118,12 +118,12 @@ ph.minify = ph.minify || function(strCode){
 				}	
 			}
 			
-			//Check the block for any functions, and grab those parameter variables as well.
+			//Check the block for any functions [function(arg1, arg2)], and grab those parameter variables as well.
 			var re = new RegExp("function\\(([^\)]+)\\)", "g");
 			var strRet = strBlock.match(re);
 			if (strRet != null) {
 				for (var i = 0; i < strRet.length; i++) {
-					strRet[i] = strRet[i].substr(strRet[i].length-1,1);
+					strRet[i] = strRet[i].substr(0, strRet[i].length-1);
 					var strSplit = strRet[i].substr(9).split(",");
 					for (var a = 0; a < strSplit.length; a++) {
 						strSplit[a] = strSplit[a].trim();
@@ -134,6 +134,8 @@ ph.minify = ph.minify || function(strCode){
 				}
 			}
 
+			//Now check the block for any functions created using "function 
+			
 			var strNewBlock = strBlock;
 			if (strNewBlock.substr(0,1) == "{") strNewBlock = strBlockStart + strNewBlock.substr(1);
 			if (strNewBlock.substr(strNewBlock.length-1,1) == "}") strNewBlock = strNewBlock.substr(0, strNewBlock.length - 1) + strBlockEnd;
@@ -301,12 +303,8 @@ ph.minify = ph.minify || function(strCode){
 	//Embedded block ends don't need semicolons.
 	strCode = replaceAll(strCode, "};}", "}}");
 	
-	
-	
 	//Now scrub the vars, replacing them with minified names.
 	strCode = scrubVars(strCode);
-	
-	
 	
 	//Put quote blocks back where they were found, in reverse.
 	for (var i = strPlaceholderValue.length-1; i >= 0 ; i--) {
