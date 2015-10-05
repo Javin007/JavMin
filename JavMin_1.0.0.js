@@ -10,7 +10,7 @@ when they're called like so:
     var foo, bar, meh;
     
 This does not break the code, but reduces the "shrink" factor.  
--------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------*/
 
 var ph = ph || {};
 ph.minify = ph.minify || function(strCode){
@@ -111,8 +111,13 @@ ph.minify = ph.minify || function(strCode){
 			if (strNewVars != null) {
 				//Step through the vars found.
 				for (var i = 0; i < strNewVars.length; i++) {
-					//If they're not already on the list, add them.
-					if (strVarList.indexOf(strNewVars[i]) == -1) strVarList.push(strNewVars[i]); 
+					//If they aren't blank, then...
+					strNewVars[i] = strNewVars[i].trim();
+					if (strNewVars[i] != "") {
+						
+						//If they're not already on the list, add them.
+						if (strVarList.indexOf(strNewVars[i]) == -1) strVarList.push(strNewVars[i]);
+					}
 				}	
 			}
 			
@@ -174,7 +179,6 @@ ph.minify = ph.minify || function(strCode){
 			strValue = strValue.replace(strBlock, strNewBlock);
 			strBlock = getBlock(strValue);			
 		}
-		
 		
 		//Once again, set the block start/ends back.
 		strValue = replaceAll(strValue, strBlockStart, "{");
