@@ -12,11 +12,11 @@ when they're called like so:
 This does not break the code, but reduces the "shrink" factor.  
 -------------------------------------------------------------------------------------*/
 
-//Declare XDI namespace.
-var xdi = xdi || {};
+//Declare "ph" namespace.
+var ph = ph || {};
 
 //Add the minify function if it doesn't already exist.
-xdi.minify = xdi.minify || function(code){
+ph.minify = ph.minify || function(code){
 	//We only swap out the "code" var with a variable here to save on a few bites when minified.
 	var strCode = code;
 	
