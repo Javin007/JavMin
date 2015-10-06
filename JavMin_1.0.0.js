@@ -12,8 +12,13 @@ when they're called like so:
 This does not break the code, but reduces the "shrink" factor.  
 -------------------------------------------------------------------------------------*/
 
-var ph = ph || {};
-ph.minify = ph.minify || function(strCode){
+//Declare XDI namespace.
+var xdi = xdi || {};
+
+//Add the minify function if it doesn't already exist.
+xdi.minify = xdi.minify || function(code){
+	//We only swap out the "code" var with a variable here to save on a few bites when minified.
+	var strCode = code;
 	
 	//Placeholder to be used throughout.
 	var strPlaceholder = String.fromCharCode(220);
@@ -39,7 +44,7 @@ ph.minify = ph.minify || function(strCode){
 		while (strString.indexOf(strFind) > -1) {
 			//Replace it.
 			strString = strString.replace(strFind,strReplace);
-		};
+		}
 		return strString;
 	};
 	
@@ -81,23 +86,23 @@ ph.minify = ph.minify || function(strCode){
 				//Then add it.
 				strFoundVars[intFoundVars] = strVar;
 				intFoundVars++;
-			};
+			}
 						
-		};
+		}
 		
 		return strFoundVars;
 	};
 
+	//Returns the variable at the "intNum" value.  0 = a, 1 = A, etc.  Two character vars after 52.   
+	//This means it can only do 2,704 unique variables.  If you have more than that in a script, 
+	//you're doing something wrong.
 	var getVar = function(intNum) {		
 		var strVars = ["a","A","b","B","c","C","d","D","e","E","f","F","g","G","h","H","i","I","j","J","k","K","l","L","m","M","n","N","o","O","p","P","q","Q","r","R","s","S","t","T","u","U","v","V","w","W","x","X","y","Y","z","Z"];
 		if (intNum < 52) return strVars[intNum];
 		return strVars[Math.floor(intNum / strVars.length) - 1] + strVars[intNum % strVars.length];
 	};
 	
-	
-	
-	
-	
+				
 	//Finds vars within a block scope and renames them to a simple name.
 	var scrubVars = function(strValue) {
 
@@ -123,7 +128,8 @@ ph.minify = ph.minify || function(strCode){
 			
 			//Check the block for any functions [function varName(arg1, arg2)], and grab those parameter variables as well.
 			var re = new RegExp("function(\\(([^\)]+)\\)|([^\)]+)\\(([^\)]+)\\)|([^\)]+)\\(\\))", "g");
-			
+
+			//Loops through found functions, and adds them to the var list.
 			var strRet = strBlock.match(re);
 			if (strRet != null) {
 				for (var i = 0; i < strRet.length; i++) {
@@ -145,17 +151,11 @@ ph.minify = ph.minify || function(strCode){
 					}
 				}
 			}
-
-
 			
-			
-			
-			
-			
+			//Remove the block brackets and replace them with a placeholder so the next block can be found.
 			var strNewBlock = strBlock;
 			if (strNewBlock.substr(0,1) == "{") strNewBlock = strBlockStart + strNewBlock.substr(1);
 			if (strNewBlock.substr(strNewBlock.length-1,1) == "}") strNewBlock = strNewBlock.substr(0, strNewBlock.length - 1) + strBlockEnd;
-
 			strValue = strValue.replace(strBlock, strNewBlock);
 			strBlock = getBlock(strValue);
 		}
@@ -166,7 +166,9 @@ ph.minify = ph.minify || function(strCode){
 		strValue = replaceAll(strValue, strBlockStart, "{");
 		strValue = replaceAll(strValue, strBlockEnd, "}");
 		
-		//Now it's time to loop through all the blocks again and replace all of the vars that were previously found.
+		//Now it's time to loop through all the blocks again and replace all of the vars that were 
+		//previously found with much shorter versions.  For starters, we use placeholders to make sure
+		//we don't accidentally use a variable that's used elsewhere.
 		var strBlock = getBlock(strValue);
 		while (strBlock != "") {
 			var strNewBlock = strBlock;
@@ -174,6 +176,7 @@ ph.minify = ph.minify || function(strCode){
 				var re = new RegExp("\\b" + strVarList[i] + "\\b", "gm");
 				strNewBlock = strNewBlock.replace(re, strUniqueVar+i+"J");
 			}
+			//As before, when done with a "block", remove the brackets temporarily so the next block can be found.
 			if (strNewBlock.substr(0,1) == "{") strNewBlock = strBlockStart + strNewBlock.substr(1);
 			if (strNewBlock.substr(strNewBlock.length-1,1) == "}") strNewBlock = strNewBlock.substr(0, strNewBlock.length - 1) + strBlockEnd;
 			strValue = strValue.replace(strBlock, strNewBlock);
@@ -211,7 +214,7 @@ ph.minify = ph.minify || function(strCode){
 		//Find and flag all escaped characters in the line.
 		for (var i = 0; i < strEscapedChars.length; i++) {
 			strLine = replaceAll(strLine, "\\" + strEscapedChars[i], strEscapedChar + i + strSuffix);
-		};
+		}
 		
 		//Regular expression to return quote block contents.
 		var strRet = strLine.match(/("(.*?)"|'(.*?)')/g);
@@ -224,7 +227,7 @@ ph.minify = ph.minify || function(strCode){
 				strPlaceholderValue[intPlaceholderCount] = strRet[i];
 				strLine = strLine.replace(strRet[i], strPlaceholder + intPlaceholderCount + strSuffix);
 				intPlaceholderCount++;
-			};
+			}
 	
 		}
 		
@@ -247,7 +250,7 @@ ph.minify = ph.minify || function(strCode){
 	//Step through each line and clean it (basically just removes comments and blank lines, and flags escaped chars.);
 	for (var i = 0; i < strLines.length; i++) {
 		strCode += cleanLine(strLines[i]);
-	};	
+	}
 	
 	//Find and replace regular expressions with placeholders.
 	var strRet = strCode.match(/(\/(.*?)\/)([igm]*)/g);
@@ -274,7 +277,7 @@ ph.minify = ph.minify || function(strCode){
 				strCode = replaceAll(strCode, strRet[i], strPlaceholder + intPlaceholderCount + strSuffix);
 				intPlaceholderCount++;					
 			}
-		};
+		}
 	}
 
 	
@@ -324,12 +327,12 @@ ph.minify = ph.minify || function(strCode){
 	//Put quote blocks back where they were found, in reverse.
 	for (var i = strPlaceholderValue.length-1; i >= 0 ; i--) {
 		strCode = replaceAll(strCode, strPlaceholder + i + strSuffix, strPlaceholderValue[i]);
-	};
+	}
 
 	//Put back escaped chars.
 	for (var i = 0; i < strEscapedChars.length; i++) {
 		strCode = replaceAll(strCode, strEscapedChar + i + strSuffix, "\\" + strEscapedChars[i]);
-	};
+	}
 	
 	//Don't need the trailing semicolon.
 	if (strCode.substring(strCode.length-1) == ";") strCode = strCode.substring(0, strCode.length-1);
