@@ -1,4 +1,4 @@
-JavMin v1.0  
+JavMin v1.0.1  
 Copyright (C) 2015 Javin-Inc.com
 
 Author: Javin  
@@ -22,6 +22,6 @@ You may only redistribute this program in its unaltered form, in original
 .zip format, including the following files (and nothing but the following
 files) in their original, unaltered format: 
 
-	JavMin_1.0.0.js
+	JavMin.js
 	readme.md
 	license.md (this file)
