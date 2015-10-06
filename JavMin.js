@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------
 Title: JavMin
-Version: 1.0
+Version: 1.0.1
 Author: Javin
 Address: javin@javin-inc.com
 
@@ -17,8 +17,9 @@ var ph = ph || {};
 
 //Add the minify function if it doesn't already exist.
 ph.minify = ph.minify || function(code){
-	//We only swap out the "code" var with a variable here to save on a few bites when minified.
+	//We only swap out the parameter vars with declared variables here to save on a few bites when minified.
 	var strCode = code;
+	var css = isCss;
 	
 	//Placeholder to be used throughout.
 	var strPlaceholder = String.fromCharCode(220);
@@ -231,10 +232,15 @@ ph.minify = ph.minify || function(code){
 	
 		}
 		
-		//If at this point, we find two forward slashes, we're not sure if it's RegEx, or an inline comment,
-		//so add an extra semicolon just to be safe.
-		if (strLine.indexOf("//") > -1) {
-			if (strLine.substr(strLine.length-1, 1) != ";") strLine = strLine + ";";
+		if (!css) {
+			//If at this point, we find two forward slashes, we're not sure if it's RegEx, or an inline comment,
+			//so add an extra semicolon just to be safe.
+			if (strLine.indexOf("//") > -1) {
+				if (strLine.substr(strLine.length-1, 1) != ";") strLine = strLine + ";";
+			}
+		} else {
+			//If it's CSS, we'll add a trailing space if there's no semicolon to make sure it doesn't break when things are put on multiple lines.
+			if (strLine.substr(strLine.length-1, 1) != ";") strLine = strLine + " ";
 		}
 		
 		//Return the finished product.
@@ -290,27 +296,31 @@ ph.minify = ph.minify || function(code){
 	strCode = replaceAll(strCode, "  ", " ");
 	
 	//None of these things need spaces on either side of them. 
-	var strOperators = ["[", "]", "{", "}", "(", ")", "=", "+", "-", "*", "/", "%", "^", "<", ">", "||", "&&", ",", ":", ";", "~"];
+	var strOperators = [];
+	strOperators = ["[", "]", "{", "}", "(", ")", "=", "+", "-", "*", "/", "%", "^", "<", ">", "||", "&&", ",", ":", ";", "~", "!"];
+	//CSS only gets a few of them.
+	if (css) strOperators = ["{", "}", "=", "+", "-", "*", "/", "%", "^", "<", ">", ",", ":", ";", "~", "!"];
 	for (var i = 0; i < strOperators.length; i++) {
 		strCode = replaceAll(strCode, " " + strOperators[i], strOperators[i]);
 		strCode = replaceAll(strCode, strOperators[i] + " ", strOperators[i]);
 	}
 		
-	//"NOT" operator too (but only at beginning).
-	strCode = replaceAll(strCode, " !", "!");
-
-	//Before removing any further semicolons, we need to get rid of any inline commenting.  
-	//Must split the lines apart again to do that.
-	strLines = strCode.split(";");
-	//Loop through each line...
-	for (var i = 0; i < strLines.length; i++) {
-		var intIndex = strLines[i].indexOf("//");
-		//If you find a double forward slash at this point, it's an inline comment.  Remove everything afterward.
-		if (intIndex > -1) strLines[i] = strLines[i].substr(0, intIndex);
-	}
+	//CSS doesn't support inline comments.
+	if (!css) {
 	
-	//Now bring them back together.
-	strCode = strLines.join(";");
+		//Before removing any further semicolons, we need to get rid of any inline commenting.  
+		//Must split the lines apart again to do that.
+		strLines = strCode.split(";");
+		//Loop through each line...
+		for (var i = 0; i < strLines.length; i++) {
+			var intIndex = strLines[i].indexOf("//");
+			//If you find a double forward slash at this point, it's an inline comment.  Remove everything afterward.
+			if (intIndex > -1) strLines[i] = strLines[i].substr(0, intIndex);
+		}
+		
+		//Now bring them back together.
+		strCode = strLines.join(";");		
+	}
 	
 	//Get rid of multiple semicolons.
 	strCode = replaceAll(strCode, ";;", ";");
@@ -322,7 +332,7 @@ ph.minify = ph.minify || function(code){
 	strCode = replaceAll(strCode, "};}", "}}");
 	
 	//Now scrub the vars, replacing them with minified names.
-	strCode = scrubVars(strCode);
+	if (!css) strCode = scrubVars(strCode);
 	
 	//Put quote blocks back where they were found, in reverse.
 	for (var i = strPlaceholderValue.length-1; i >= 0 ; i--) {
