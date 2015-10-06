@@ -17,7 +17,7 @@ Feel free to suggest better ways to do things if you're interested.
 Setup is simple.  In the main page (often index.html) simply add the script to the page:
 
 ```javascript
-        <script src = "js/JavMin_1.0.0.js"></script>
+        <script src = "js/JavMin.js"></script>
 ```
     
 To minify any code string, pass the string to the "minify" function in the "ph" (Peculair Habit) namespace:  
