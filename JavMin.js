@@ -174,7 +174,8 @@ ph.minify = ph.minify || function(code){
 		while (strBlock != "") {
 			var strNewBlock = strBlock;
 			for (var i = 0; i < strVarList.length; i++) {
-				var re = new RegExp("\\b" + strVarList[i] + "\\b", "gm");
+				//This regex says "Find a word block (\b) that does not start with a period (?!\.) but can start with a new line or any other character.  
+				var re = new RegExp("(?!\.)(.|^)\\b" + strVarList[i] + "\\b", "gm");
 				strNewBlock = strNewBlock.replace(re, strUniqueVar+i+"J");
 			}
 			//As before, when done with a "block", remove the brackets temporarily so the next block can be found.
