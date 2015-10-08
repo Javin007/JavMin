@@ -1,4 +1,4 @@
-# Javin's Minifier v1.0.1
+# Javin's Minifier v1.0.2
 ## Purpose: 
 I needed a very simple minifier on a closed network, and did not have the option of installing NodeJS, or any other files (such as Google's Closure Library).  The minifier didn't need to do any transpiling, just simple minification, and I couldn't find anything out there that fit the bill, so I wrote this one.
 
