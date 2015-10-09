@@ -365,3 +365,202 @@ ph.minify = ph.minify || function(code, isCSS){
 	return strCode;
 	
 };
+
+
+
+xdi.unMinify = xdi.unMinify || function(code){
+	var strCode = code;
+	var strIndent = "    ";
+	var intIndentCount = 0;
+	function getIndent() {
+		var strRet = "";
+		for (var i = 0; i < intIndentCount; i++) {
+			strRet += strIndent;
+		} 
+		return strRet;
+	}
+	
+	
+	//Steal this from the minifier.
+	//Placeholder to be used throughout.
+	var strPlaceholder = String.fromCharCode(220);
+	var strEscapedChar = String.fromCharCode(221);
+	var strSuffix = String.fromCharCode(219);
+	
+
+	//All characters that should be "escaped" so as not to cause issues.
+	var strEscapedChars = ["\\", "\"", "/","'"];
+	
+	//Simple function that continues to loop as long as it finds something to replace.
+	var replaceAll = function(strString, strFind, strReplace) {
+		//For as long as we're still finding it in the string...
+		while (strString.indexOf(strFind) > -1) {
+			//Replace it.
+			strString = strString.replace(strFind,strReplace);
+		}
+		return strString;
+	};
+	
+
+	//Replace all quote/regexp blocks with a placeholder.	
+	var strPlaceholderValue = [];
+	var intPlaceholderCount = 0;	
+	
+	var cleanLine = function(strLine) {
+		//Find and flag all escaped characters in the line.
+		for (var i = 0; i < strEscapedChars.length; i++) {
+			strLine = replaceAll(strLine, "\\" + strEscapedChars[i], strEscapedChar + i + strSuffix);
+		}
+		
+		//Regular expression to return quote block contents.
+		var strRet = strLine.match(/("(.*?)"|'(.*?)')/g);
+		
+		//If quote blocks are found:
+		if (strRet != null) {
+			
+			//Loop through all found quote blocks, and replace them with a placeholder.
+			for (var i = 0; i < strRet.length; i++) {
+				strPlaceholderValue[intPlaceholderCount] = strRet[i];
+				strLine = strLine.replace(strRet[i], strPlaceholder + intPlaceholderCount + strSuffix);
+				intPlaceholderCount++;
+			}
+	
+		}
+
+		
+		//Find and replace regular expressions with placeholders.
+		var strRet = strLine.match(/(\/(.*?)\/)([igm]*)/g);
+		
+		var intIndex;
+		
+		//If RegExp blocks are found:
+		if (strRet != null) {
+			//Loop through all found blocks, and replace them with a placeholder.
+			for (var i = 0; i < strRet.length; i++) {
+				
+				//First, to make sure it IS a regular expression:
+				//Grab the first non-white space character in front of it.
+				intIndex = strLine.indexOf(strRet[i]) - 1;
+				var strToken = strLine.substr(intIndex, 1);
+				while ((strToken == " ") && (intIndex >= 0)) {				
+					intIndex --;
+					strToken = strLine.substr(intIndex, 1);
+				}
+				
+				//If it starts with "," "=" or "(" it's likely a RegExp.
+				if ((strToken == ",") || (strToken == "=") || (strToken == "(")) {
+					strPlaceholderValue[intPlaceholderCount] = strRet[i];
+					strLine = replaceAll(strLine, strRet[i], strPlaceholder + intPlaceholderCount + strSuffix);
+					intPlaceholderCount++;					
+				}
+			}
+		}
+
+		
+		//Return the finished product.
+		return strLine;
+	};
+
+	//Put placeholders in for escaped characters, quotes, and regex so we don't accidentally
+	//strip on those lines.
+	strCode = cleanLine(strCode);
+	
+	
+	//Step through the code character by character looking for breaks.
+	var strRet = "";
+	var booNewLine = true;
+	var booCloseBlock = false;
+	var strLine = "";
+	
+	function buildLine(noNewLine) {
+		if ((strRet != "") && !noNewLine) {
+			strRet += "\n";
+			strRet += getIndent();			
+		}
+		strRet += strLine;
+		strLine = "";
+		booNewLine = true;
+	}  
+	
+	
+	for (var i = 0; i < strCode.length; i++) {
+		var strChar = strCode.substr(i, 1);
+		
+		if (strChar == "}") {
+			if (strLine.substr(strLine.length-1) != ";") booCloseBlock = true; 
+			if (strLine.trim() != "") buildLine();
+			intIndentCount --;
+			strLine = strChar;
+			continue;
+		}
+
+		if (strChar == ";") {
+			var booSkip = false;
+			if (strLine.substr(0,4) == "for(") booSkip = true;
+			if (strLine.substr(0,4) == "for ") booSkip = true;
+			if (strLine.substr(0,6) == "while(") booSkip = true;
+			if (strLine.substr(0,6) == "while ") booSkip = true;
+			if (!booSkip) {
+				strLine = strLine + ";";
+				buildLine();
+				continue;
+			}
+		}
+
+		
+		if (booCloseBlock && booNewLine) {
+			buildLine();
+		}
+		booCloseBlock = false;
+		
+		if (strChar == "{") {
+			strLine += strChar; 
+			buildLine();
+			intIndentCount ++;
+			continue;
+		}
+		
+		if (strChar == ":") {
+			var booSkip = false;
+			if (strLine.substr(0,5) == "case ") booSkip = true;
+			if (strLine.substr(0,5) == "case(") booSkip = true;
+			if (strLine.substr(0,8) == "default ") booSkip = true;
+			if (strLine.substr(0,8) == "default:") booSkip = true;
+			if (!booSkip) {
+				strLine += strChar;
+				buildLine();
+				continue;
+			}
+		}
+		
+		if (strChar == ")") {
+			if (strLine.substr(strLine.length - 1) == "}") {
+				strLine += strChar;
+				buildLine();
+				continue;
+			}
+		}
+		
+		var newChar = strChar;
+		if (booNewLine) newChar = strChar.trim();
+		if (strChar == newChar) booNewLine = false;
+		strLine += newChar;
+		
+	}
+	
+	buildLine();
+	
+	//Put back all the placeholders in reverse order.
+	
+	//Put quote blocks back where they were found, in reverse.
+	for (var i = strPlaceholderValue.length-1; i >= 0 ; i--) {
+		strRet = replaceAll(strRet, strPlaceholder + i + strSuffix, strPlaceholderValue[i]);
+	}
+
+	//Put back escaped chars.
+	for (var i = 0; i < strEscapedChars.length; i++) {
+		strRet = replaceAll(strRet, strEscapedChar + i + strSuffix, "\\" + strEscapedChars[i]);
+	}
+	
+	return strRet;
+};
