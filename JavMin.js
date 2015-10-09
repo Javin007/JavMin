@@ -28,11 +28,7 @@ ph.minify = ph.minify || function(code, isCSS){
 	var strBlockStart = String.fromCharCode(222);
 	var strBlockEnd = String.fromCharCode(223);
 	var strUniqueVar = "Javin'sUniqueVarJ";
-	var strDeclaration = String.fromCharCode(225);
 
-	//Keep track of which var we're currently using.
-	var intCurrentVar = 0;
-	
 	//All characters that could be at the "end" of a "var" declaration.
 	var strOps = [",","=",".",";"," in "];
 
