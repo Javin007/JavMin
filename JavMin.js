@@ -16,7 +16,7 @@ This does not break the code, but reduces the "shrink" factor.
 var ph = ph || {};
 
 //Add the minify function if it doesn't already exist.
-ph.minify = ph.minify || function(code){
+ph.minify = ph.minify || function(code, isCSS){
 	//We only swap out the parameter vars with declared variables here to save on a few bites when minified.
 	var strCode = code;
 	var css = isCss;
