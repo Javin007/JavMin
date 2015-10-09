@@ -37,7 +37,7 @@ ph.minify = ph.minify || function(code){
 	var strOps = [",","=",".",";"," in "];
 
 	//All characters that should be "escaped" so as not to cause issues.
-	var strEscapedChars = ["\"", "\\", "/","'"];
+	var strEscapedChars = ["\\", "\"", "/","'"];
 	
 	//Simple function that continues to loop as long as it finds something to replace.
 	var replaceAll = function(strString, strFind, strReplace) {
@@ -174,9 +174,26 @@ ph.minify = ph.minify || function(code){
 		while (strBlock != "") {
 			var strNewBlock = strBlock;
 			for (var i = 0; i < strVarList.length; i++) {
-				//This regex says "Find a word block (\b) that does not start with a period (?!\.) but can start with a new line or any other character.  
-				var re = new RegExp("(?!\.)(.|^)\\b" + strVarList[i] + "\\b", "gm");
-				strNewBlock = strNewBlock.replace(re, strUniqueVar+i+"J");
+				//"Find word blocks that don't start with a period, but do start and end with non-text values, and contain the variable."
+				var re = new RegExp("(?!\\.)([^a-zA-Z\\d_]|^)" + strVarList[i] + "[^a-zA-Z\\d_]", "gm");
+				//Loop through the matches.
+				var strFound = strNewBlock.match(re);
+				if (strFound != null) {
+					for (var a = 0; a < strFound.length; a++) {
+						//Grab escape prefix/suffix.
+						var strCharPre = strFound[a].substr(0,1);
+						var strCharSuff = strFound[a].substr(strFound[a].length-1, 1);
+						//Strip them from the word. 
+						var strFoundEsc = strFound[a].substr(1);
+						strFoundEsc = strFoundEsc.substr(0, strFoundEsc.length-1);
+						//Now return the prefix/suffix as escaped characters.
+						strFoundEsc = "\\" + strCharPre + strFoundEsc + "\\" + strCharSuff;
+						//Use it as a RegExp to find and replace the found names.
+						re = new RegExp(strFoundEsc, "g");
+						//Now do the find and replace with a temporary placeholder, but be sure to put the prefix and suffix back.
+						strNewBlock = strNewBlock.replace(re, strCharPre + strUniqueVar + i + "J" + strCharSuff);
+					}
+				}
 			}
 			//As before, when done with a "block", remove the brackets temporarily so the next block can be found.
 			if (strNewBlock.substr(0,1) == "{") strNewBlock = strBlockStart + strNewBlock.substr(1);
