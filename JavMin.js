@@ -28,7 +28,7 @@ ph.minify = ph.minify || function(code, isCSS){
 	var strBlockStart = String.fromCharCode(222);
 	var strBlockEnd = String.fromCharCode(223);
 	var strUniqueVar = "Javin'sUniqueVarJ";
-
+	
 	//All characters that could be at the "end" of a "var" declaration.
 	var strOps = [",","=",".",";"," in "];
 
@@ -170,7 +170,7 @@ ph.minify = ph.minify || function(code, isCSS){
 		while (strBlock != "") {
 			var strNewBlock = strBlock;
 			for (var i = 0; i < strVarList.length; i++) {
-				//"Find word blocks that don't start with a period, but do start and end with non-text values, and contain the variable."
+				//"Replace all word blocks (
 				var re = new RegExp("(?!\\.)([^a-zA-Z\\d_]|^)" + strVarList[i] + "[^a-zA-Z\\d_]", "gm");
 				//Loop through the matches.
 				var strFound = strNewBlock.match(re);
@@ -257,8 +257,8 @@ ph.minify = ph.minify || function(code, isCSS){
 			if (strLine.substr(strLine.length-1, 1) != ";") strLine = strLine + " ";
 		}
 		
-		//Return the finished product.
-		return strLine;
+		//Return the finished product with a space padding the end, just to be safe.
+		return strLine + " ";
 	};
 
 	//Separate along each "line"
@@ -271,7 +271,7 @@ ph.minify = ph.minify || function(code, isCSS){
 	for (var i = 0; i < strLines.length; i++) {
 		strCode += cleanLine(strLines[i]);
 	}
-	
+
 	//Find and replace regular expressions with placeholders.
 	var strRet = strCode.match(/(\/(.*?)\/)([igm]*)/g);
 	
