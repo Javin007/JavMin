@@ -21,6 +21,7 @@ ph.minify = ph.minify || function(code, args){
 	var strCode = code;
 	
 	//Set the defaults.
+	args = args || {};
 	var booCss = args.IsCss;
 	if (booCss == undefined) booCss = false;
 	var booMinifyVars = args.MinifyVars;
