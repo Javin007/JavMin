@@ -374,10 +374,15 @@ ph.minify = ph.minify || function(code, args){
 
 
 
-xdi.unMinify = xdi.unMinify || function(code){
+ph.unMinify = ph.unMinify || function(code, args){
 	var strCode = code;
 	var strIndent = "    ";
 	var intIndentCount = 0;
+	args = args || {};
+	
+	var booCss = args.IsCss;
+	if (booCss == undefined) booCss = false;
+	
 	function getIndent() {
 		var strRet = "";
 		for (var i = 0; i < intIndentCount; i++) {
@@ -526,16 +531,18 @@ xdi.unMinify = xdi.unMinify || function(code){
 			continue;
 		}
 		
-		if (strChar == ":") {
-			var booSkip = false;
-			if (strLine.substr(0,5) == "case ") booSkip = true;
-			if (strLine.substr(0,5) == "case(") booSkip = true;
-			if (strLine.substr(0,8) == "default ") booSkip = true;
-			if (strLine.substr(0,8) == "default:") booSkip = true;
-			if (!booSkip) {
-				strLine += strChar;
-				buildLine();
-				continue;
+		if (!booCss) {
+			if (strChar == ":") {
+				var booSkip = false;
+				if (strLine.substr(0,5) == "case ") booSkip = true;
+				if (strLine.substr(0,5) == "case(") booSkip = true;
+				if (strLine.substr(0,8) == "default ") booSkip = true;
+				if (strLine.substr(0,8) == "default:") booSkip = true;
+				if (!booSkip) {
+					strLine += strChar;
+					buildLine();
+					continue;
+				}
 			}
 		}
 		
