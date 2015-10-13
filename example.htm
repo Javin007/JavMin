@@ -39,7 +39,7 @@
 			<textarea readonly id="txtOutput" style="width: 450px; height: 480px; float: left;"></textarea>
 		</div>
 	</div>
-<script src = "js/xdiMin.js"></script> 
+<script src = "js/phMin.js"></script> 
 <script>
 	
 	//Just for simplification.
@@ -90,32 +90,32 @@
 			
 			if (ID("selMinify").value == "unminify") {
 				if (ID("selType").value == "css") {
-					ID("txtOutput").value = xdi.unMinify(strInput, {IsCss: true});
+					ID("txtOutput").value = ph.unMinify(strInput, {IsCss: true});
 					return;
 				}
 				if (ID("selType").value == "js") {
-					ID("txtOutput").value = xdi.unMinify(strInput);				
+					ID("txtOutput").value = ph.unMinify(strInput);				
 					return;
 				}
 			}
 			
 			if (ID("selMinify").value == "bookmarklet") {
-				ID("txtOutput").value = encodeURI("javascript:(function(){" + xdi.minify(strInput) + "})()");
+				ID("txtOutput").value = encodeURI("javascript:(function(){" + ph.minify(strInput) + "})()");
 				return;
 			}
 			
 			if (ID("selMinify").value == "minify") {
 				if (ID("selType").value == "css") {
-					ID("txtOutput").value = xdi.minify(strInput, {IsCss: true});
+					ID("txtOutput").value = ph.minify(strInput, {IsCss: true});
 					return;
 				}  
 				if (ID("selType").value == "js") {
 					if (ID("selVars").value == "true") {
-						ID("txtOutput").value = xdi.minify(strInput);
+						ID("txtOutput").value = ph.minify(strInput);
 						return;
 					}  
 					if (ID("selVars").value == "false") {
-						ID("txtOutput").value = xdi.minify(strInput, {MinifyVars: false});
+						ID("txtOutput").value = ph.minify(strInput, {MinifyVars: false});
 						return;
 					}  
 				}  
