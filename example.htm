@@ -1,34 +1,128 @@
 <html>
 <head>
+
+	<script src = "js/LiveReload.js"></script>
+	<script>
+		LiveReload.setFiles([
+		                     "index.html",
+		                     "js/xdiMin.js"
+		                     ]);
+	</script>
+
 	<meta charset="utf-8">
 </head>
 
 
 <body>
+
+	<div>
+		<h4 style = "float: left; margin: 0 20px 0 0;">Options:</h4>
+		<select id = "selMinify" style = "float: left;">
+			<option value="minify">Minify</option>
+			<option value="bookmarklet">Bookmarklet</option>
+			<option value="unminify">Un-Minify</option>
+		</select>
+		<select id = "selType" style = "float: left;">
+			<option value="js">JavaScript</option>
+			<option value="css">CSS</option>
+		</select>
+		<select id = "selVars" style = "float: left;">
+			<option value="true">Minify Variables</option>
+			<option value="false">Don't Minify Variables</option>
+		</select>		
+	</div>
+	<br>&nbsp;<br>
 	<div style="width: 900px; margin: auto;">
-		<textarea wrap="off" id="txtInput" style="width: 450px; height: 480px; float: left; overflow: auto;"></textarea>
-		<textarea readonly id="txtOutput" style="width: 450px; height: 480px; float: left;"></textarea>
+		<div style = "float: left;">
+			<h3 style = "text-align: center; margin: 0;">Paste Here:</h3>
+			<textarea wrap="off" id="txtInput" style="width: 450px; height: 480px; float: left; overflow: auto;"></textarea>
+		</div>
+		
+		<div style = "float: left;">
+			<h3 style = "text-align: center; margin: 0;">Copy Here:</h3>
+			<textarea readonly id="txtOutput" style="width: 450px; height: 480px; float: left;"></textarea>
+		</div>
 	</div>
 <script src = "js/xdiMin.js"></script> 
 <script>
-	//Track what was in the "txtInput" box.
-	var oldInput = "";
-	var txtInput = document.getElementById("txtInput");
-	var txtOutput = document.getElementById("txtOutput");
+	
+	//Just for simplification.
+	function ID(s){return document.getElementById(s);}
+
+	//Function to set the "visible" status of all dropdowns
+	function setDropdowns(){
+		if ((ID("selMinify").value == "unminify") || (ID("selMinify").value == "bookmarklet")) {
+			ID("selType").style.visibility = "hidden";
+			ID("selVars").style.visibility = "hidden";
+			return;
+		} 
+		ID("selType").style.visibility = "visible";
+		if (ID("selType").value == "css") {
+			ID("selVars").style.visibility = "hidden";
+			return;
+		} 
+		ID("selVars").style.visibility = "visible";
+	}
+	
 	//Function to check the input against the "old" input.
-	function checkInput(){
+	function checkInput(args){
+
+		//Fix the dropdowns.
+		setDropdowns();
+		
 		//Get value of txtInput element.
+		var txtInput = ID("txtInput");
+		var txtOutput = ID("txtOutput");
 		var strInput = txtInput.value;
+		var oldInput = txtInput.getAttribute("data-oldInput");
+		if (!oldInput) oldInput = "";
+		
+		var strNewArgs = ID("selMinify").value + ID("selType").value + ID("selVars").value;
+		var strOldArgs = txtInput.getAttribute("data-oldArgs");
+		if (!strOldArgs) strOldArgs = "";
+		
 		//If the values of changed...
-		if (oldInput != strInput) {
+		if ((oldInput != strInput) || (strOldArgs != strNewArgs)){
+			
 			//Set the "old" to the "new"...
-			oldInput = strInput;
-			//And set the "output" to the minified code.
-			txtOutput.value = xdi.minify(strInput);	
+			txtInput.setAttribute("data-oldInput", strInput);
+			txtInput.setAttribute("data-oldArgs", strNewArgs);
+			
+			if (ID("selMinify").value == "unminify") {
+				ID("txtOutput").value = xdi.unMinify(strInput);				
+				return;
+			}
+			
+			if (ID("selMinify").value == "bookmarklet") {
+				ID("txtOutput").value = encodeURI("javascript:(function(){" + xdi.minify(strInput) + "})()");
+				return;
+			}
+			
+			if (ID("selMinify").value == "minify") {
+				if (ID("selType").value == "css") {
+					ID("txtOutput").value = xdi.minify(strInput, {IsCss: true});
+					return;
+				}  
+				if (ID("selType").value == "js") {
+					if (ID("selVars").value == "true") {
+						ID("txtOutput").value = xdi.minify(strInput);
+						return;
+					}  
+					if (ID("selVars").value == "false") {
+						ID("txtOutput").value = xdi.minify(strInput, {MinifyVars: false});
+						return;
+					}  
+				}  
+			}			
 		}
 	}
+	
 	//Now watch for any changes.
-	txtInput.onkeyup = checkInput;
+	ID("txtInput").onkeyup = function(args){ checkInput(args); };
+	ID("selMinify").onchange = function(args){ checkInput(args); };
+	ID("selType").onchange = function(args){ checkInput(args); };
+	ID("selVars").onchange = function(args){ checkInput(args); };
+	
 </script>
 </body>
 </html>
