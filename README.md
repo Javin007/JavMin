@@ -28,7 +28,7 @@ To minify any code string, pass the string to the "minify" function in the "ph" 
         </script>
 ```
 The arguments are:  
-    IsCss - true/false - Minify as css (don't replace vars, or other things that would break CSS).
+    IsCss - true/false - Minify as css (don't replace vars, or other things that would break CSS).  
     MinifyVars - true/false - Not necessary if IsCss is "true".  Minifies without minifying/obfuscating vars.
 
 That's pretty much it.  Not very fancy.
