@@ -1,4 +1,4 @@
-# Javin's Minifier v1.0.2
+# Javin's Minifier v1.0.3
 ## Purpose: 
 I needed a very simple minifier on a closed network, and did not have the option of installing NodeJS, or any other files (such as Google's Closure Library).  The minifier didn't need to do any transpiling, just simple minification, and I couldn't find anything out there that fit the bill, so I wrote this one.
 
@@ -24,8 +24,11 @@ To minify any code string, pass the string to the "minify" function in the "ph" 
 
 ```javascript
         <script>
-            ph.minify(strCode, true)
+            ph.minify(strCode, {arg1: value, arg2: value});
         </script>
 ```
-The "true" says that you're minifying CSS.
+The arguments are:  
+    IsCss - true/false - Minify as css (don't replace vars, or other things that would break CSS).
+    MinifyVars - true/false - Not necessary if IsCss is "true".  Minifies without minifying/obfuscating vars.
+
 That's pretty much it.  Not very fancy.
