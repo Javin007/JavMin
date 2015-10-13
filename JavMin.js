@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------
 Title: JavMin
-Version: 1.0.2
+Version: 1.0.3
 Author: Javin
 Address: javin@javin-inc.com
 
@@ -16,10 +16,15 @@ This does not break the code, but reduces the "shrink" factor.
 var ph = ph || {};
 
 //Add the minify function if it doesn't already exist.
-ph.minify = ph.minify || function(code, isCSS){
+ph.minify = ph.minify || function(code, args){
 	//We only swap out the parameter vars with declared variables here to save on a few bites when minified.
 	var strCode = code;
-	var css = isCss;
+	
+	//Set the defaults.
+	var booCss = args.IsCss;
+	if (booCss == undefined) booCss = false;
+	var booMinifyVars = args.MinifyVars;
+	if (booMinifyVars == undefined) booMinifyVars = true;
 	
 	//Placeholder to be used throughout.
 	var strPlaceholder = String.fromCharCode(220);
@@ -246,7 +251,7 @@ ph.minify = ph.minify || function(code, isCSS){
 	
 		}
 		
-		if (!css) {
+		if (!booCss) {
 			//If at this point, we find two forward slashes, we're not sure if it's RegEx, or an inline comment,
 			//so add an extra semicolon just to be safe.
 			if (strLine.indexOf("//") > -1) {
@@ -313,14 +318,14 @@ ph.minify = ph.minify || function(code, isCSS){
 	var strOperators = [];
 	strOperators = ["[", "]", "{", "}", "(", ")", "=", "+", "-", "*", "/", "%", "^", "<", ">", "||", "&&", ",", ":", ";", "~", "!"];
 	//CSS only gets a few of them.
-	if (css) strOperators = ["{", "}", "=", "+", "-", "*", "/", "%", "^", "<", ">", ",", ":", ";", "~", "!"];
+	if (booCss) strOperators = ["{", "}", "=", "+", "-", "*", "/", "%", "^", "<", ">", ",", ":", ";", "~", "!"];
 	for (var i = 0; i < strOperators.length; i++) {
 		strCode = replaceAll(strCode, " " + strOperators[i], strOperators[i]);
 		strCode = replaceAll(strCode, strOperators[i] + " ", strOperators[i]);
 	}
 		
 	//CSS doesn't support inline comments.
-	if (!css) {
+	if (!booCss) {
 	
 		//Before removing any further semicolons, we need to get rid of any inline commenting.  
 		//Must split the lines apart again to do that.
@@ -346,7 +351,7 @@ ph.minify = ph.minify || function(code, isCSS){
 	strCode = replaceAll(strCode, "};}", "}}");
 	
 	//Now scrub the vars, replacing them with minified names.
-	if (!css) strCode = scrubVars(strCode);
+	if (!booCss && booMinifyVars) strCode = scrubVars(strCode);
 	
 	//Put quote blocks back where they were found, in reverse.
 	for (var i = strPlaceholderValue.length-1; i >= 0 ; i--) {
